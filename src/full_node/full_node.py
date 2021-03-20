@@ -51,24 +51,6 @@ from src.util.path import mkdir, path_from_root
 
 
 class FullNode:
-    block_store: BlockStore
-    full_node_store: FullNodeStore
-    full_node_peers: Optional[FullNodePeers]
-    sync_store: Any
-    coin_store: CoinStore
-    mempool_manager: MempoolManager
-    connection: aiosqlite.Connection
-    _sync_task: Optional[asyncio.Task]
-    blockchain: Blockchain
-    config: Dict
-    server: Any
-    log: logging.Logger
-    constants: ConsensusConstants
-    _shut_down: bool
-    root_path: Path
-    state_changed_callback: Optional[Callable]
-    timelord_lock: asyncio.Lock
-    initialized: bool
 
     def __init__(
         self,
@@ -80,18 +62,23 @@ class FullNode:
         self.initialized = False
         self.root_path = root_path
         self.config = config
-        self.server = None
+        self.server: Any = None
         self._shut_down = False  # Set to true to close all infinite loops
         self.constants = consensus_constants
         self.pow_creation: Dict[uint32, asyncio.Event] = {}
         self.state_changed_callback: Optional[Callable] = None
-        self.full_node_peers = None
-        self.sync_store = None
+        self.full_node_peers: Optional[FullNodePeers] = None
+        self.sync_store: Any = None
+        self.log = logging.getLogger(name or __name__)
+        self.timelord_lock: asyncio.Lock = None
+        self.blockchain: Blockchain = None
+        self.block_store: BlockStore = None
+        self.mempool_manager: MempoolManager = None
 
-        if name:
-            self.log = logging.getLogger(name)
-        else:
-            self.log = logging.getLogger(__name__)
+        self.full_node_store: FullNodeStore = None
+        self.coin_store: CoinStore = None
+        self.connection: aiosqlite.Connection = None
+        self._sync_task: Optional[asyncio.Task] = None
 
         db_path_replaced: str = config["database_path"].replace("CHALLENGE", config["selected_network"])
         self.db_path = path_from_root(root_path, db_path_replaced)
